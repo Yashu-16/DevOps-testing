@@ -29,12 +29,12 @@ def test_fetch_user_valid():
 
 def test_fetch_user_invalid():
     with pytest.raises(ValueError):
-        fetch_user(-1
+        fetch_user(-1)
 
 def test_process_payment_valid():
     result = process_payment(100.0)
     assert result["status"] == "success"
-    assert result["amount"] == 100.0
+    assert result["amount"] == 100.00
 
 def test_process_payment_invalid():
     with pytest.raises(ValueError):
