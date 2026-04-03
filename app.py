@@ -1,42 +1,60 @@
-import random
-import time
+from flask import Flask, jsonify, request
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Flask(__name__)
 
 
-def add(a, b):
-    return a + b
+@app.route('/')
+def hello_world():
+    """Simple hello world endpoint."""
+    logger.info('Hello world endpoint accessed')
+    return jsonify({
+        'message': 'Hello, World!',
+        'status': 'success',
+        'version': '1.0.0'
+    })
 
 
-def subtract(a, b):
-    return a - b
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring."""
+    return jsonify({
+        'status': 'healthy',
+        'service': 'flask-app'
+    })
 
 
-def multiply(a, b):
-    return a * b
+@app.route('/api/data', methods=['POST'])
+def process_data():
+    """Process incoming data and return formatted response."""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        if 'name' not in data:
+            return jsonify({'error': 'Missing required field: name'}), 400
+        
+        # Process the data
+        processed_data = {
+            'original': data,
+            'processed': True,
+            'name_length': len(data['name']),
+            'timestamp': '2023-01-01T00:00:00Z'
+        }
+        
+        logger.info(f'Processed data for: {data["name"]}')
+        return jsonify(processed_data)
+    
+    except Exception as e:
+        logger.error(f'Error processing data: {str(e)}')
+        return jsonify({'error': 'Internal server error'}), 500
 
 
-def divide(a, b):
-    if b == 0:
-        raise ValueError("Cannot divide by zero")
-    return a / b
-
-
-def fetch_user(user_id: int) -> dict:
-    """Simulates a database call with occasional latency."""
-    time.sleep(0.01)
-    if user_id <= 0:
-        raise ValueError("Invalid user ID")
-    return {"id": user_id, "name": f"User {user_id}", "active": True}
-
-
-def process_payment(amount: float) -> dict:
-    """Simulates a payment gateway call."""
-    if amount <= 0:
-        raise ValueError("Amount must be positive")
-    return {"status": "success", "amount": amount, "transaction_id": f"TXN{random.randint(1000, 9999)}"}
-
-
-def get_api_data(endpoint: str) -> dict:
-    """Simulates an external API call."""
-    if not endpoint:
-        raise ValueError("Endpoint cannot be empty")
-    return {"endpoint": endpoint, "data": {"status": "ok"}, "latency_ms": random.randint(10, 100)}
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
