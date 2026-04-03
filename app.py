@@ -1,60 +1,105 @@
-from flask import Flask, jsonify, request
-import logging
+"""Simple Python application with arithmetic and API simulation functions."""
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-app = Flask(__name__)
+import random
+import time
+from typing import Dict, Union
 
 
-@app.route('/')
-def hello_world():
-    """Simple hello world endpoint."""
-    logger.info('Hello world endpoint accessed')
-    return jsonify({
-        'message': 'Hello, World!',
-        'status': 'success',
-        'version': '1.0.0'
-    })
+def add(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """Add two numbers."""
+    return a + b
 
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for monitoring."""
-    return jsonify({
-        'status': 'healthy',
-        'service': 'flask-app'
-    })
+def subtract(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """Subtract second number from first."""
+    return a - b
 
 
-@app.route('/api/data', methods=['POST'])
-def process_data():
-    """Process incoming data and return formatted response."""
-    try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        
-        if 'name' not in data:
-            return jsonify({'error': 'Missing required field: name'}), 400
-        
-        # Process the data
-        processed_data = {
-            'original': data,
-            'processed': True,
-            'name_length': len(data['name']),
-            'timestamp': '2023-01-01T00:00:00Z'
-        }
-        
-        logger.info(f'Processed data for: {data["name"]}')
-        return jsonify(processed_data)
+def multiply(a: Union[int, float], b: Union[int, float]) -> Union[int, float]:
+    """Multiply two numbers."""
+    return a * b
+
+
+def divide(a: Union[int, float], b: Union[int, float]) -> float:
+    """Divide first number by second.
     
-    except Exception as e:
-        logger.error(f'Error processing data: {str(e)}')
-        return jsonify({'error': 'Internal server error'}), 500
+    Args:
+        a: Dividend
+        b: Divisor
+        
+    Returns:
+        Result of division
+        
+    Raises:
+        ValueError: If divisor is zero
+    """
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a / b
 
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+def fetch_user(user_id: int) -> Dict[str, Union[int, str, bool]]:
+    """Simulate a database call with occasional latency.
+    
+    Args:
+        user_id: ID of user to fetch
+        
+    Returns:
+        User dictionary with id, name, and active status
+        
+    Raises:
+        ValueError: If user_id is invalid
+    """
+    time.sleep(0.01)
+    if user_id <= 0:
+        raise ValueError("Invalid user ID")
+    return {
+        "id": user_id,
+        "name": f"User {user_id}",
+        "active": True
+    }
+
+
+def process_payment(amount: float) -> Dict[str, Union[str, float]]:
+    """Simulate a payment gateway call.
+    
+    Args:
+        amount: Payment amount
+        
+    Returns:
+        Payment result dictionary
+        
+    Raises:
+        ValueError: If amount is not positive
+    """
+    if amount <= 0:
+        raise ValueError("Amount must be positive")
+    
+    transaction_id = f"TXN{random.randint(1000, 9999)}"
+    return {
+        "status": "success",
+        "amount": amount,
+        "transaction_id": transaction_id
+    }
+
+
+def get_api_data(endpoint: str) -> Dict[str, Union[str, Dict, int]]:
+    """Simulate an external API call.
+    
+    Args:
+        endpoint: API endpoint to call
+        
+    Returns:
+        API response dictionary
+        
+    Raises:
+        ValueError: If endpoint is empty
+    """
+    if not endpoint:
+        raise ValueError("Endpoint cannot be empty")
+    
+    return {
+        "endpoint": endpoint,
+        "data": {"status": "ok"},
+        "latency_ms": random.randint(10, 100)
+    }
