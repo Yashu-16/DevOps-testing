@@ -61,7 +61,7 @@ jobs:
           else
             CONCLUSION="failure"
             FAILED_TESTS=$(grep "FAILED" test_output.txt | sed 's/FAILED //' | sed 's/ -.*//' | head -5 | tr '\n' ',' || echo "")
-            ERROR_OUTPUT=$(grep -A3 "ERROR\|SyntaxError\|FAILED\|assert" test_output.txt | head -20 | tr '\n' ' ' | tr '"' "'" || echo "test failed")
+            ERROR_OUTPUT=$(grep -A2 "SyntaxError\|ERROR\|FAILED\|assert" test_output.txt | head -15 | tr '\n' ' ' | tr '"' "'" || echo "test failed")
           fi
 
           curl -s -X POST "${{ secrets.DECISIONOPS_WEBHOOK_URL }}" \
@@ -82,3 +82,10 @@ jobs:
               },
               \"sender\": { \"login\": \"${{ github.actor }}\" }
             }" || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: test_output.txt
