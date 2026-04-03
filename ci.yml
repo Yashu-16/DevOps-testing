@@ -30,77 +30,55 @@ jobs:
         run: |
           curl -s -X POST "${{ secrets.DECISIONOPS_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -H "X-Hub-Signature-256: sha256=placeholder" \
             -d '{
               "action": "in_progress",
               "workflow_run": {
                 "id": ${{ github.run_id }},
-                "name": "CI Pipeline",
-                "status": "in_progress",
-                "conclusion": null,
                 "head_branch": "${{ github.ref_name }}",
-                "head_sha": "${{ github.sha }}",
-                "html_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
-                "run_attempt": ${{ github.run_attempt }}
+                "head_sha": "${{ github.sha }}"
               },
               "repository": {
                 "full_name": "${{ github.repository }}",
-                "clone_url": "https://github.com/${{ github.repository }}.git",
-                "default_branch": "main"
+                "clone_url": "https://github.com/${{ github.repository }}.git"
               },
-              "sender": {
-                "login": "${{ github.actor }}"
-              }
-            }' || echo "DecisionOps notification failed (non-blocking)"
+              "sender": { "login": "${{ github.actor }}" }
+            }' || true
 
       - name: Run tests
         id: run_tests
         run: |
           set -o pipefail
           pytest test_app.py -v --tb=short 2>&1 | tee test_output.txt
+        continue-on-error: true
 
       - name: Notify DecisionOps — run completed
         if: always()
         run: |
-          # Determine conclusion
           if [ "${{ steps.run_tests.outcome }}" == "success" ]; then
             CONCLUSION="success"
+            FAILED_TESTS=""
+            ERROR_OUTPUT=""
           else
             CONCLUSION="failure"
+            FAILED_TESTS=$(grep "FAILED" test_output.txt | sed 's/FAILED //' | sed 's/ -.*//' | head -5 | tr '\n' ',' || echo "")
+            ERROR_OUTPUT=$(grep -A3 "ERROR\|SyntaxError\|FAILED\|assert" test_output.txt | head -20 | tr '\n' ' ' | tr '"' "'" || echo "test failed")
           fi
-
-          # Get failed test names from output
-          FAILED_TESTS=$(grep "FAILED" test_output.txt | head -5 | tr '\n' ',' || echo "")
 
           curl -s -X POST "${{ secrets.DECISIONOPS_WEBHOOK_URL }}" \
             -H "Content-Type: application/json" \
-            -H "X-Hub-Signature-256: sha256=placeholder" \
             -d "{
               \"action\": \"completed\",
               \"workflow_run\": {
                 \"id\": ${{ github.run_id }},
-                \"name\": \"CI Pipeline\",
-                \"status\": \"completed\",
                 \"conclusion\": \"${CONCLUSION}\",
                 \"head_branch\": \"${{ github.ref_name }}\",
                 \"head_sha\": \"${{ github.sha }}\",
-                \"html_url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
-                \"run_attempt\": ${{ github.run_attempt }},
-                \"failed_tests\": \"${FAILED_TESTS}\"
+                \"failed_tests\": \"${FAILED_TESTS}\",
+                \"error_output\": \"${ERROR_OUTPUT}\"
               },
               \"repository\": {
                 \"full_name\": \"${{ github.repository }}\",
-                \"clone_url\": \"https://github.com/${{ github.repository }}.git\",
-                \"default_branch\": \"main\"
+                \"clone_url\": \"https://github.com/${{ github.repository }}.git\"
               },
-              \"sender\": {
-                \"login\": \"${{ github.actor }}\"
-              }
-            }" || echo "DecisionOps notification failed (non-blocking)"
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-results
-          path: test_output.txt
+              \"sender\": { \"login\": \"${{ github.actor }}\" }
+            }" || true
