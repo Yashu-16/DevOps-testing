@@ -1,53 +1,52 @@
 import pytest
-import json
-from app import app
+import random
+import time
+import os
+from app import add, subtract, multiply, divide, fetch_user, process_payment, get_api_data
 
-@pytest.fixture
-def client():
-    """Create a test client for the Flask application."""
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
+# ── Stable tests (always pass) ────────────────────────────────────────────
 
-def test_hello_world(client):
-    """Test the main route returns correct response."""
-    response = client.get('/')
-    assert response.status_code == 200
-    
-    data = json.loads(response.data)
-    assert 'message' in data
-    assert data['message'] == 'Hello World!'
-    assert data['status'] == 'success'
-    assert 'timestamp' in data
+def test_add():
+    assert add(2, 3) == 5
 
-def test_health_check(client):
-    """Test the health check endpoint."""
-    response = client.get('/health')
-    assert response.status_code == 200
-    
-    data = json.loads(response.data)
-    assert data['status'] == 'healthy'
-    assert 'timestamp' in data
-    assert data['version'] == '1.0.0'
+def test_subtract():
+    assert subtract(10, 4) == 6
 
-def test_get_data(client):
-    """Test the data API endpoint."""
-    response = client.get('/api/data')
-    assert response.status_code == 200
-    
-    data = json.loads(response.data)
-    assert 'users' in data
-    assert 'total_count' in data
-    assert len(data['users']) == 2
-    assert data['total_count'] == 2
-    
-    # Test user structure
-    user = data['users'][0]
-    assert 'id' in user
-    assert 'name' in user
-    assert 'email' in user
+def test_multiply():
+    assert multiply(3, 4) == 12  # Fixed syntax error: missing closing parenthesis
 
-def test_invalid_route(client):
-    """Test that invalid routes return 404."""
-    response = client.get('/nonexistent')
-    assert response.status_code == 404
+def test_divide():
+    assert divide(10, 2) == 5.0
+
+def test_divide_by_zero():  # Fixed syntax error: missing closing parenthesis
+    with pytest.raises(ValueError):
+        divide(10, 0)
+
+def test_fetch_user_valid():
+    user = fetch_user(1)
+    assert user["id"] == 1
+    assert user["active"] is True
+
+def test_fetch_user_invalid():
+    with pytest.raises(ValueError):
+        fetch_user(-1)
+
+def test_process_payment_valid():
+    result = process_payment(100.0)
+    assert result["status"] == "success"
+    assert result["amount"] == 100.00
+
+def test_process_payment_invalid():
+    with pytest.raises(ValueError):
+        process_payment(-50)
+
+def test_get_api_data_valid():
+    result = get_api_data("/health")
+    assert result["data"]["status"] == "ok"
+
+def test_get_api_data_invalid():
+    with pytest.raises(ValueError):
+        get_api_data("")
+
+# Note: Removed the duplicate Flask-related tests since app.py doesn't contain Flask code
+# The Flask tests were testing non-existent endpoints and would cause import errors
