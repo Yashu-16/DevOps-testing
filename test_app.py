@@ -4,7 +4,7 @@ import time
 import os
 from app import add, subtract, multiply, divide, fetch_user, process_payment, get_api_data
 
-def test_add():
+def test_add(:
     assert add(2, 3) == 5
 
 def test_subtract():
@@ -13,7 +13,7 @@ def test_subtract():
 def test_multiply():
     assert multiply(3, 4) == 12  # Fixed syntax error: missing closing parenthesis
 
-def test_divide(:
+def test_divide():
     assert divide(10, 2) == 5.0
 
 def test_divide_by_zero():
