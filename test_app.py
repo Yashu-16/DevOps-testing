@@ -10,7 +10,7 @@ def test_add():
 def test_subtract():
     assert subtract(10, 4) == 6
 
-def test_multiply():
+def test_multiply(:
     assert multiply(3, 4) == 12  # Fixed syntax error: missing closing parenthesis
 
 def test_divide():
@@ -20,7 +20,7 @@ def test_divide_by_zero():
     with pytest.raises(ValueError):
         divide(10, 0)
 
-def test_fetch_user_valid(:
+def test_fetch_user_valid():
     user = fetch_user(1)
     assert user["id"] == 1
     assert user["active"] is True
