@@ -4,7 +4,7 @@ import time
 import os
 from app import add, subtract, multiply, divide, fetch_user, process_payment, get_api_data
 
-def test_add(:
+def test_add():
     assert add(2, 3) == 5
 
 def test_subtract():
@@ -29,7 +29,7 @@ def test_fetch_user_invalid():
     with pytest.raises(ValueError):
         fetch_user(-1)
 
-def test_process_payment_valid():
+def test_process_payment_valid(:
     result = process_payment(100.0)
     assert result["status"] == "success"
     assert result["amount"] == 100.00
